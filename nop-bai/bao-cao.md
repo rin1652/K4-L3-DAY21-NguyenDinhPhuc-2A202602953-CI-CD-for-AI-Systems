@@ -19,34 +19,41 @@
 | 3        | 200          | 0.1           | 5         | 0.7149   | 0.8740   |
 
 **Bộ siêu tham số đã chọn:** `n_estimators=200`, `learning_rate=0.1`, `max_depth=5`.
-
-**Lý do:** Em chọn bộ siêu tham số thứ 3 vì nó cho kết quả F1-score cao nhất (0.7149) so với hai lần chạy còn lại. Lần chạy có Accuracy cao nhất (0.8780 ở lần 1) không trùng với lần có F1 cao nhất, điều này cho thấy Accuracy không phản ánh đúng hoàn toàn khả năng nhận diện lớp dương (những người có thu nhập cao) của mô hình. Trong khi đó, F1-score cân bằng tốt hơn giữa Precision và Recall. Nhìn chung, việc tăng `n_estimators` lên 200 và giữ `learning_rate` ở 0.1 giúp mô hình học được nhiều đặc trưng phức tạp hơn mà không bị quá khớp (overfitting).
+**Lý do:** Cho F1-score cao nhất (0.7149). F1 cân bằng giữa Precision và Recall, phản ánh tốt hơn Accuracy. Tăng `n_estimators` và `max_depth` giúp mô hình học các đặc trưng phức tạp.
 
 ---
 
 ## 2. Vì Sao Ngưỡng Chất Lượng Đặt Trên F1 Chứ Không Phải Accuracy
 
-Trong bài toán dự đoán thu nhập, tỷ lệ người có thu nhập > 50K (lớp dương) chỉ chiếm khoảng 24,8% tổng số mẫu dữ liệu, tạo ra sự mất cân bằng dữ liệu nghiêm trọng. 
-Nếu dùng một mô hình vô tri luôn dự đoán "thu nhập thấp" (0) cho mọi trường hợp, Accuracy vẫn sẽ đạt tới khoảng 75,2%. Con số này gây hiểu nhầm rất lớn vì mô hình trông có vẻ hoạt động tốt nhưng thực chất là vô dụng. 
-Do đó, ta phải dùng F1-score (harmonic mean của Precision và Recall) đối với lớp dương để đánh giá chính xác khả năng nhận diện nhóm thiểu số quan trọng. Việc không dùng average="weighted" hay "macro" đảm bảo rằng ta chỉ tập trung đo lường độ chính xác trên nhóm lớp dương thay vì bị pha loãng bởi nhóm lớp âm áp đảo.
+Tỷ lệ lớp dương (thu nhập > 50K) chỉ 24,8%. Một mô hình dự đoán toàn 0 sẽ đạt Accuracy 75,2% nhưng vô dụng. F1-score đo lường độ chính xác trên lớp thiểu số, tránh bị nhiễu bởi sự mất cân bằng dữ liệu.
 
 ---
 
 ## 3. Khó Khăn Gặp Phải và Cách Giải Quyết
 
-| Khó khăn | Nguyên nhân | Cách giải quyết |
-| -------- | ----------- | --------------- |
-| Lỗi 403 Forbidden tải mô hình ở EC2 | File cấu hình `systemd` trên máy ảo chưa được cấp quyền `AWS_ACCESS_KEY` để gọi S3 | Cập nhật cấu hình môi trường trong `/etc/systemd/system/income-api.service` và truyền biến bí mật vào. |
-| EC2 restart service failed (bị crash) | Thư viện `scikit-learn` trên EC2 cài mặc định (1.5.x) không tương thích với mô hình đã train (1.4.2) | Cài đặt lại thư viện trên máy chủ bằng lệnh `pip3 install scikit-learn==1.4.2` cho trùng với bản gốc. |
-| Lỗi GitHub Actions `Unable to locate credentials` | Biến `AWS_ACCESS_KEY_ID` rỗng do cấu hình sai GitHub Secrets ban đầu | Xóa thiết lập cũ, cập nhật lại đúng 2 biến Secrets từ cấu hình mặc định của ~/.aws/credentials. |
+| Khó khăn | Giải quyết |
+| -------- | ---------- |
+| Lỗi 403 Forbidden S3 | Cập nhật file `income-api.service` và truyền biến `AWS_ACCESS_KEY` vào môi trường. |
+| Crash do khác bản sklearn | Chạy `pip3 install scikit-learn==1.4.2` trên EC2 để đồng bộ. |
+| GitHub Actions mất credentials | Xóa secret cũ, điền lại đúng 2 biến môi trường lấy từ `~/.aws/credentials`. |
 
 ---
 
 ## 4. So Sánh Bước 2 và Bước 3
 
-|                              | f1_score | accuracy |
-| ---------------------------- | -------- | -------- |
-| Bước 2 (chỉ `train_batch1`)  | 0.7149   | 0.8740   |
-| Bước 3 (thêm `train_batch2`) | 0.7354   | 0.8820   |
+| Bước | f1_score | accuracy |
+| --- | -------- | -------- |
+| 2   | 0.7149   | 0.8740   |
+| 3   | 0.7354   | 0.8820   |
 
-**Nhận xét:** F1-score tăng nhẹ (khoảng 0.02) khi bổ sung thêm dữ liệu mới. Do 2 tập dữ liệu được tách ra từ cùng 1 nguồn nên có chung phân phối, mô hình đã học được đa số các đặc trưng từ ban đầu. Dù hiệu năng không đột phá mạnh, bước này chứng minh được vòng lặp CI/CD đã hoạt động trơn tru: tự động train lại và triển khai khi có dữ liệu mới.
+**Nhận xét:** F1-score tăng khi thêm dữ liệu mới. Điều này chứng minh CI/CD tự động train và deploy khi dữ liệu cập nhật hoạt động tốt.
+
+---
+
+## 5. Phần Bonus Đã Thực Hiện
+
+- [ ] Bonus 1: Tracking MLflow từ xa với DagsHub
+- [x] Bonus 2: Quét ngưỡng xác suất: Thêm vòng lặp tìm `threshold` từ 0.1 đến 0.9 thay vì 0.5 để tối ưu F1.
+- [x] Bonus 3: Báo cáo Precision / Recall: Tự động lưu `classification_report.json` và `confusion_matrix.txt` thành MLflow artifact.
+- [ ] Bonus 4: Hoàn trả về phiên bản trước (Rollback)
+- [x] Bonus 5: Cảnh báo Data Drift: Tính tỷ lệ lớp dương tập train và cảnh báo nếu lệch quá 5% so với 24.8%.

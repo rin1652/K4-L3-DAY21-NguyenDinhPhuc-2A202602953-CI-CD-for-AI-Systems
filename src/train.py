@@ -6,7 +6,7 @@ import json
 import joblib
 import os
 from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, classification_report, confusion_matrix, precision_score, recall_score
 
 # Nguong chat luong cua lab nay la f1_score, KHONG phai accuracy.
 # Ly do: bo du lieu Adult co ty le lop 75/25. Mot mo hinh doan bua
@@ -51,11 +51,49 @@ def train(
         model = GradientBoostingClassifier(**params, random_state=42)
         model.fit(X_train, y_train)
 
-        # TODO 5: Du doan tren tap holdout va tinh chi so
-        # Chu y: f1_score o day tinh cho LOP DUONG (target = 1), khong dung average.
-        preds = model.predict(X_eval)
-        f1    = f1_score(y_eval, preds)
-        acc   = accuracy_score(y_eval, preds)
+
+        # --- BONUS 5: Data Drift ---
+        pos_ratio = y_train.mean()
+        mlflow.log_metric("pos_ratio", pos_ratio)
+        if abs(pos_ratio - 0.248) > 0.05:
+            print(f"WARNING: Data drift detected! Positive ratio is {pos_ratio:.4f}")
+
+        # --- BONUS 2: Optimal Threshold ---
+        best_threshold = 0.5
+        best_f1 = 0.0
+        best_preds = None
+
+        probs = model.predict_proba(X_eval)[:, 1]
+        for threshold in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+            preds = (probs >= threshold).astype(int)
+            tmp_f1 = f1_score(y_eval, preds)
+            if tmp_f1 > best_f1:
+                best_f1 = tmp_f1
+                best_threshold = threshold
+                best_preds = preds
+                
+        f1 = best_f1
+        preds = best_preds
+        acc = accuracy_score(y_eval, preds)
+        
+        mlflow.log_param("best_threshold", best_threshold)
+
+
+        # --- BONUS 3: Precision / Recall Artifacts ---
+        report = classification_report(y_eval, preds, output_dict=True)
+        cm = confusion_matrix(y_eval, preds)
+        
+        os.makedirs("outputs", exist_ok=True)
+        with open("outputs/classification_report.json", "w") as f_out:
+            json.dump(report, f_out, indent=2)
+            
+        with open("outputs/confusion_matrix.txt", "w") as f_out:
+            f_out.write(str(cm))
+        
+        mlflow.log_artifact("outputs/classification_report.json")
+        mlflow.log_artifact("outputs/confusion_matrix.txt")
+
+
 
         # TODO 6: Ghi nhan chi so vao MLflow
         mlflow.log_metric("f1_score", f1)
