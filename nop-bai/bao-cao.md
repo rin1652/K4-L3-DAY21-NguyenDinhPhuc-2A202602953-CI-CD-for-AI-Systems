@@ -52,7 +52,7 @@ Tỷ lệ lớp dương (thu nhập > 50K) chỉ 24,8%. Một mô hình dự đo
 
 ## 5. Phần Bonus Đã Thực Hiện
 
-- [ ] Bonus 1: Tracking MLflow từ xa với DagsHub
+- [x] Bonus 1: Tracking MLflow từ xa với DagsHub: Kết nối repo lên DagsHub, thêm env variables vào GitHub Secrets và sửa cicd.yml.
 - [x] Bonus 2: Quét ngưỡng xác suất: Thêm vòng lặp tìm `threshold` từ 0.1 đến 0.9 thay vì 0.5 để tối ưu F1.
 - [x] Bonus 3: Báo cáo Precision / Recall: Tự động lưu `classification_report.json` và `confusion_matrix.txt` thành MLflow artifact.
 - [ ] Bonus 4: Hoàn trả về phiên bản trước (Rollback)
