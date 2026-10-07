@@ -38,8 +38,8 @@ jobs:
         run: pip install -r requirements.txt
       - name: Authenticate to AWS
         run: |
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID || vars.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY || vars.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
           echo "AWS_DEFAULT_REGION=ap-southeast-1" >> $GITHUB_ENV
       - name: Pull data with DVC
         run: dvc pull data/train_batch1.csv.dvc data/holdout.csv.dvc
@@ -52,7 +52,7 @@ jobs:
           echo "f1=$F1" >> $GITHUB_OUTPUT
       - name: Upload model to Cloud Storage
         env:
-          ARTIFACT_BUCKET: ${{ secrets.ARTIFACT_BUCKET }}
+          ARTIFACT_BUCKET: ${{ secrets.ARTIFACT_BUCKET || vars.ARTIFACT_BUCKET }}
         run: |
           python - <<'PYEOF'
           import os
@@ -89,9 +89,9 @@ jobs:
       - name: SSH deploy to VM
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          host: ${{ secrets.SERVER_HOST || vars.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER || vars.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY || vars.SERVER_SSH_KEY }}
           script: |
             sudo systemctl restart income-api
             sleep 5
