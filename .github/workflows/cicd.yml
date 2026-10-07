@@ -29,6 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       f1: ${{ steps.read_report.outputs.f1 }}
+      old_f1: ${{ steps.read_report.outputs.old_f1 }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -49,11 +50,34 @@ jobs:
           MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: python src/train.py
-      - name: Read report
+      - name: Read report and check Rollback
         id: read_report
+        env:
+          ARTIFACT_BUCKET: ${{ secrets.ARTIFACT_BUCKET || vars.ARTIFACT_BUCKET }}
         run: |
-          F1=$(python -c "import json; d=json.load(open('outputs/report.json')); print(d['f1_score'])")
-          echo "f1=$F1" >> $GITHUB_OUTPUT
+          python - <<'PYEOF'
+          import json, os, boto3
+          s3 = boto3.client("s3")
+          bucket = os.environ.get("ARTIFACT_BUCKET")
+          
+          with open("outputs/report.json") as f:
+              new_f1 = json.load(f)["f1_score"]
+              
+          old_f1 = 0.0
+          if bucket:
+              try:
+                  s3.download_file(bucket, "artifacts/current/report.json", "old_report.json")
+                  with open("old_report.json") as f:
+                      old_f1 = json.load(f).get("f1_score", 0.0)
+              except Exception:
+                  pass
+                  
+              s3.upload_file("outputs/report.json", bucket, "artifacts/current/report.json")
+          
+          with open(os.environ["GITHUB_OUTPUT"], "a") as gh_out:
+              gh_out.write(f"f1={new_f1}\n")
+              gh_out.write(f"old_f1={old_f1}\n")
+          PYEOF
       - name: Upload model to Cloud Storage
         env:
           ARTIFACT_BUCKET: ${{ secrets.ARTIFACT_BUCKET || vars.ARTIFACT_BUCKET }}
@@ -76,13 +100,23 @@ jobs:
     needs: train
     runs-on: ubuntu-latest
     steps:
-      - name: Check quality gate
+      - name: Check quality gate and Rollback conditions
         run: |
           python - <<'PYEOF'
-          f1 = float("${{ needs.train.outputs.f1 }}")
-          if f1 < 0.65:
-              raise SystemExit(f"FAILED: f1_score {f1:.4f} < 0.65. Huy trien khai.")
-          print(f"PASSED: f1_score {f1:.4f} >= 0.65. Dang trien khai model.")
+          new_f1 = float("${{ needs.train.outputs.f1 }}")
+          old_f1 = float("${{ needs.train.outputs.old_f1 }}")
+          
+          print(f"--- F1 SO SÁNH ---")
+          print(f"F1 cũ (trên cloud): {old_f1:.4f}")
+          print(f"F1 mới (vừa train): {new_f1:.4f}")
+          
+          if new_f1 < 0.65:
+              raise SystemExit(f"FAILED: F1 mới ({new_f1:.4f}) < ngưỡng cứng 0.65. Hủy triển khai.")
+              
+          if new_f1 < old_f1:
+              raise SystemExit(f"ROLLBACK FAILED: F1 mới ({new_f1:.4f}) thấp hơn F1 cũ ({old_f1:.4f}). Hủy triển khai để bảo vệ hệ thống.")
+              
+          print("PASSED: F1 mới vượt cả ngưỡng 0.65 và phiên bản cũ. Bắt đầu Release!")
           PYEOF
 
   release:
