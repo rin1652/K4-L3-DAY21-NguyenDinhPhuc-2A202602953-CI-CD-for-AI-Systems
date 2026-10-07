@@ -11,13 +11,13 @@ HƯỚNG DẪN - đọc rồi XÓA TOÀN BỘ các khối chú thích này sau k
     và xem trước bản in bằng cách mở file trên GitHub rồi Ctrl+P / Cmd+P.
 -->
 
-| | |
-|---|---|
-| Họ và tên | ___ |
-| MSSV | ___ |
-| Lớp / Khóa | K4 |
-| Repo GitHub | https://github.com/___/___ |
-| Ngày nộp | ___ |
+|             |                                                                                        |
+| ----------- | -------------------------------------------------------------------------------------- |
+| Họ và tên   | Nguyễn Đình Phúc                                                                       |
+| MSSV        | 2A202602953                                                                            |
+| Lớp / Khóa  | A20-k4                                                                                 |
+| Repo GitHub | https://github.com/rin1652/K4-L3-DAY21-NguyenDinhPhuc-2A202602953-CI-CD-for-AI-Systems |
+| Ngày nộp    | 7/10/2026                                                                              |
 
 ---
 
@@ -26,14 +26,14 @@ HƯỚNG DẪN - đọc rồi XÓA TOÀN BỘ các khối chú thích này sau k
 <!-- Khoảng 120 - 150 từ. Điền kết quả thật từ MLflow UI ở Bước 1, tối thiểu 3 lần chạy. -->
 
 | Lần chạy | n_estimators | learning_rate | max_depth | f1_score | accuracy |
-|---|---|---|---|---|---|
-| 1 | ___ | ___ | ___ | ___ | ___ |
-| 2 | ___ | ___ | ___ | ___ | ___ |
-| 3 | ___ | ___ | ___ | ___ | ___ |
+| -------- | ------------ | ------------- | --------- | -------- | -------- |
+| 1        | 100          | 0.1           | 3         | 0.7109   | 0.8780   |
+| 2        | 50           | 0.05          | 2         | 0.6051   | 0.8460   |
+| 3        | 200          | 0.1           | 5         | 0.7149   | 0.8740   |
 
-**Bộ siêu tham số đã chọn:** `n_estimators=___`, `learning_rate=___`, `max_depth=___`.
+**Bộ siêu tham số đã chọn:** `n_estimators=200`, `learning_rate=0.1`, `max_depth=5`.
 
-**Lý do:** ___
+**Lý do:** \_\_\_
 
 <!--
 Trả lời trong phần Lý do:
@@ -49,7 +49,7 @@ Trả lời trong phần Lý do:
 
 <!-- Khoảng 120 - 150 từ. -->
 
-___
+---
 
 <!--
 Cần nêu được:
@@ -67,10 +67,10 @@ Cần nêu được:
 <!-- Nêu 2 - 3 khó khăn thật, mỗi ô một câu ngắn. -->
 
 | Khó khăn | Nguyên nhân | Cách giải quyết |
-|---|---|---|
-| ___ | ___ | ___ |
-| ___ | ___ | ___ |
-| ___ | ___ | ___ |
+| -------- | ----------- | --------------- |
+| \_\_\_   | \_\_\_      | \_\_\_          |
+| \_\_\_   | \_\_\_      | \_\_\_          |
+| \_\_\_   | \_\_\_      | \_\_\_          |
 
 ---
 
@@ -78,12 +78,12 @@ Cần nêu được:
 
 <!-- Lấy số liệu từ bảng ở mục 3.6 của tasks/buoc-3.md. -->
 
-| | f1_score | accuracy |
-|---|---|---|
-| Bước 2 (chỉ `train_batch1`) | ___ | ___ |
-| Bước 3 (thêm `train_batch2`) | ___ | ___ |
+|                              | f1_score | accuracy |
+| ---------------------------- | -------- | -------- |
+| Bước 2 (chỉ `train_batch1`)  | \_\_\_   | \_\_\_   |
+| Bước 3 (thêm `train_batch2`) | \_\_\_   | \_\_\_   |
 
-**Nhận xét:** ___
+**Nhận xét:** \_\_\_
 
 <!--
 Một câu trả lời trung thực kiểu "f1 giảm 0,01 vì dữ liệu mới cùng phân phối, không mang
@@ -96,8 +96,8 @@ thêm thông tin mới" được đánh giá cao hơn kết luận sai rằng th
 
 <!-- Xóa cả mục 5 nếu không làm bonus. Mỗi bonus tối đa 1 dòng. -->
 
-- [ ] Bonus 1 - Tracking MLflow từ xa với DagsHub: ___
-- [ ] Bonus 2 - Điều chỉnh ngưỡng quyết định: ___
-- [ ] Bonus 3 - Báo cáo precision / recall tự động: ___
-- [ ] Bonus 4 - Hoàn trả về phiên bản trước: ___
-- [ ] Bonus 5 - Cảnh báo lệch lạc dữ liệu: ___
+- [ ] Bonus 1 - Tracking MLflow từ xa với DagsHub: \_\_\_
+- [ ] Bonus 2 - Điều chỉnh ngưỡng quyết định: \_\_\_
+- [ ] Bonus 3 - Báo cáo precision / recall tự động: \_\_\_
+- [ ] Bonus 4 - Hoàn trả về phiên bản trước: \_\_\_
+- [ ] Bonus 5 - Cảnh báo lệch lạc dữ liệu: \_\_\_
